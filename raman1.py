@@ -1,38 +1,92 @@
+from pydantic import BaseModel as PyBaseModel, Extra
+from typing import Optional, List
 
-def kanpsack_0_1(vals, weight, W, curr):
-    """
-    Returns the maximum price that we can fill in the knapsack
+class BaseModel(PyBaseModel):
+    critical_priority: Optional[int] = None
+    class Config:
+        extra = Extra.forbid
 
-    vals = array of prices
-    weight = array of weights
-    W = limit of max weight in knapsack
-    curr = current index in consideration
-    """
+class MonitorSettings(BaseModel):
+    critical_priority: int = 1
+    warning_priority: int = 2
 
-    if curr == 0:
-        if weight[curr] <= W:
-            return vals[curr]
-        else:
-            return 0
+class BaseJobMonitorSettings(MonitorSettings):
+    pass
 
-    new_W = W - weight[curr]
-    select_curr = -1
+class FailureMonitorSettings(BaseJobMonitorSettings):
+    critical_threshold: int = 2
+    timeout_h: Optional[int] = 3
 
-    if weight[curr] <= W:
-        select_curr = vals[curr] + kanpsack_0_1(vals, weight, new_W, curr-1)
+class RuntimeMonitorSettings(BaseJobMonitorSettings):
+    critical_threshold: float = 4
+    timeout_h: Optional[int] = 5
 
-    not_Select_curr = kanpsack_0_1(vals, weight, W, curr-1)
-    
-    return max(select_curr, not_Select_curr)
-
-
-vals = [20, 5, 10, 40, 15, 25]
-weight = [1, 2, 3, 8, 7, 4]
-W = 10
-last = len(vals) - 1
-ans = kanpsack_0_1(vals, weight, W, last)
+class CronjobMonitorSettings(BaseModel):
+    resource_id: str
+    # critical_priority: Optional[int] = None
+    warning_priority: Optional[int] = None
+    failure_monitor_settings: FailureMonitorSettings = FailureMonitorSettings()
+    runtime_monitor_settings: RuntimeMonitorSettings = RuntimeMonitorSettings()
 
 
+class CronjobMonitorSetArgs(BaseModel):
+    environment: str
+    # critical_priority: Optional[int] = None
+    warning_priority: Optional[int] = None
+    monitor_settings: List[CronjobMonitorSettings] = []
+    class Config:
+        arbitrary_types_allowed = True
 
-print(ans)
+class CronjobMonitorSet:
+    def __init__(self, args: CronjobMonitorSetArgs) -> None:
+        self.args = args
+
+a1 = CronjobMonitorSet(
+            args=CronjobMonitorSetArgs(
+                critical_priority=150,
+                environment="prod1",
+                monitor_settings=[
+                    CronjobMonitorSettings(
+                        critical_priority=200,
+                        resource_id="id1",
+                        failure_monitor_settings=FailureMonitorSettings(
+                            critical_priority=250,
+                            critical_threshold=3,
+                        ),
+                        runtime_monitor_settings=RuntimeMonitorSettings(
+                            critical_threshold=3,
+                        ),
+                    ),
+                    CronjobMonitorSettings(
+                        resource_id="id2",
+                        failure_monitor_settings=FailureMonitorSettings(
+                            critical_threshold=4,
+                        ),
+                    ),
+                ],
+            ),
+        )
+
+print(a1)
+
+import pdb
+pdb.set_trace()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
