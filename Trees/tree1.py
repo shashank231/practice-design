@@ -1,3 +1,4 @@
+
 class Node:
     # A utility function to create a new node
     def __init__(self, key):
@@ -101,7 +102,6 @@ def minDepth(root):
         return 1
     return 1 + min(minDepth(root.left), minDepth(root.right))
 
-
 def height(node):
 	if node is None:
 		return 0
@@ -127,6 +127,17 @@ def diameter(root):
         max(ldiameter, rdiameter))
 
 
+"""
+            1
+         /    \
+        2      3
+       / \    / \
+      4   5  6   7
+     /          /
+    8          9
+
+"""
+
 root = Node(1)
 root.left = Node(2)
 root.right = Node(3)
@@ -149,10 +160,3 @@ printRightView(root)
 print()
 a1 = minDepth(root)
 print(a1)
-
-
-
-
-
-
-
